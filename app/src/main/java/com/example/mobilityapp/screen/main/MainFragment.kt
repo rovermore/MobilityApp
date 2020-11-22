@@ -19,6 +19,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.android.synthetic.main.error_view.*
@@ -88,29 +89,43 @@ class MainFragment : Fragment(), OnMapReadyCallback {
             val isGoogleServicesAvailable = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(requireContext())
             if (transportList.isNotEmpty() && isGoogleServicesAvailable == ConnectionResult.SUCCESS) {
                 for (transport in transportList) {
-                    val marker = googleMap.addMarker(
+                    val marker = it.addMarker(
                         MarkerOptions().position(LatLng(transport.y, transport.x))
                             .title(transport.name)
                     )
                     marker.tag = transport
+                    when (transport.companyZoneId) {
+                        402 -> marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
+                        378 -> marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+                        382 -> marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE))
+                        473 -> marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW))
+                        412 -> marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
+                    }
                 }
-                googleMap.moveCamera(
-                    CameraUpdateFactory.newLatLngZoom(
-                        LatLng(transportList[0].y, transportList[0].x),
-                        16.0f
+                it.apply {
+                    moveCamera(
+                        CameraUpdateFactory.newLatLngZoom(
+                            LatLng(transportList[0].y, transportList[0].x),
+                            16.0f
+                        )
                     )
-                )
-                it.uiSettings.apply {
-                    isZoomControlsEnabled = true
-                    isZoomGesturesEnabled = true
-                    isScrollGesturesEnabled = true
-                    isTiltGesturesEnabled = true
-                    isScrollGesturesEnabledDuringRotateOrZoom = true
+                    setOnCameraMoveListener {
+
+                    }
+                    uiSettings.apply {
+                        isZoomControlsEnabled = true
+                        isZoomGesturesEnabled = true
+                        isScrollGesturesEnabled = true
+                        isTiltGesturesEnabled = true
+                        isScrollGesturesEnabledDuringRotateOrZoom = true
+                    }
                 }
                 big_map.visible()
             }
         }
     }
+
+
 
     private fun updateUI(screenState: ScreenState) {
         when (screenState) {

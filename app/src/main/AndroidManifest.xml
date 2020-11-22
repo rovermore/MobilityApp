@@ -7,7 +7,7 @@
 
     <meta-data
         android:name="com.google.android.geo.API_KEY"
-        android:value="AIzaSyDRtyLpRZwT-t6sPbiz3IJNtfVk8c-PEB0" />
+        android:value="@string/api_key" />
 
     <application
         android:name=".MobilityApp"

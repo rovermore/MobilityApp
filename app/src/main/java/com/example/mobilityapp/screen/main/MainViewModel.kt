@@ -30,15 +30,12 @@ class MainViewModel
     private val _uiState = MutableLiveData<ScreenState>()
     val uiState: LiveData<ScreenState> = _uiState
 
-    private var totalOffset = 0
-
     fun initialize() {
-        loadData(0)
+        loadData()
     }
 
-    fun loadData(offset: Int) {
-        totalOffset = offset
-        _uiState.setValue(ScreenState.Loading)
+    fun loadData() {
+        _uiState.value = ScreenState.Loading
         checkInternetConnection()
     }
 
