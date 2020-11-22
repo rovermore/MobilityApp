@@ -12,6 +12,9 @@ import com.example.mobilityapp.model.Transport
 import com.example.mobilityapp.utils.ScreenState
 import com.example.mobilityapp.utils.gone
 import com.example.mobilityapp.utils.visible
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
+import com.google.android.gms.common.GooglePlayServicesUtil
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -47,7 +50,6 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setupUI()
         setupReloadButton()
     }
 
@@ -71,11 +73,8 @@ class MainFragment : Fragment(), OnMapReadyCallback {
     private fun observeData() {
         mainViewModel.uiModel.observe(this, Observer {
             transportList = it
+            setupMap()
         })
-    }
-
-    private fun setupUI() {
-        setupMap()
     }
 
     private fun setupMap() {
@@ -86,21 +85,21 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
     override fun onMapReady(googleMap: GoogleMap?) {
         googleMap?.let {
-            if (transportList.isNotEmpty()) {
+            val isGoogleServicesAvailable = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(requireContext())
+            if (transportList.isNotEmpty() && isGoogleServicesAvailable == ConnectionResult.SUCCESS) {
                 for (transport in transportList) {
-                    val transportLocation = LatLng(transport.y, transport.x)
                     val marker = googleMap.addMarker(
-                        MarkerOptions().position(transportLocation)
+                        MarkerOptions().position(LatLng(transport.y, transport.x))
                             .title(transport.name)
                     )
-                    marker?.tag = transport
-                    googleMap.moveCamera(
-                        CameraUpdateFactory.newLatLngZoom(
-                            transportLocation,
-                            10.0f
-                        )
-                    )
+                    marker.tag = transport
                 }
+                googleMap.moveCamera(
+                    CameraUpdateFactory.newLatLngZoom(
+                        LatLng(transportList[0].y, transportList[0].x),
+                        16.0f
+                    )
+                )
                 it.uiSettings.apply {
                     isZoomControlsEnabled = true
                     isZoomGesturesEnabled = true
@@ -108,7 +107,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
                     isTiltGesturesEnabled = true
                     isScrollGesturesEnabledDuringRotateOrZoom = true
                 }
-                //googleMap?.setOnInfoWindowClickListener(this)
+                big_map.visible()
             }
         }
     }
@@ -128,5 +127,4 @@ class MainFragment : Fragment(), OnMapReadyCallback {
             }
         }
     }
-
 }
