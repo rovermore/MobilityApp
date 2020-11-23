@@ -1,6 +1,7 @@
 package com.example.mobilityapp
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import com.example.mobilityapp.model.FrameMap
 import com.example.mobilityapp.screen.main.MainViewModel
 import com.example.mobilityapp.usecase.TransportListUseCase
 import com.example.mobilityapp.utils.NetworkConnection
@@ -31,6 +32,7 @@ class MainViewModelTest {
     lateinit var transportListUseCase: TransportListUseCase
     lateinit var mainViewModel: MainViewModel
     lateinit var networkConnection: NetworkConnection
+    private var frameMap = FrameMapMock.frameMap
 
     private val mockedTransportList = TransportListMock.transportList
     private val nullTransportList= TransportListMock.nullTransportList
@@ -40,7 +42,7 @@ class MainViewModelTest {
         MockitoAnnotations.initMocks(this)
         transportListUseCase = Mockito.mock(TransportListUseCase::class.java)
         networkConnection = Mockito.mock(NetworkConnection::class.java)
-        whenever(transportListUseCase.request()).thenReturn(mockedTransportList)
+        whenever(transportListUseCase.requestWithParameter(frameMap)).thenReturn(mockedTransportList)
         whenever(networkConnection.isNetworkConnected()).thenReturn(true)
         mainViewModel = MainViewModel(networkConnection,transportListUseCase)
         Dispatchers.setMain(testDispatcher)
@@ -54,7 +56,7 @@ class MainViewModelTest {
 
     @Test
     fun `checks uiModel is null when transportList request is null`() = runBlocking {
-        whenever(transportListUseCase.request()).thenReturn(nullTransportList)
+        whenever(transportListUseCase.requestWithParameter(frameMap)).thenReturn(nullTransportList)
         mainViewModel.initialize()
         Truth.assertThat(mainViewModel.uiModel.value).isNull()
     }
@@ -67,7 +69,7 @@ class MainViewModelTest {
 
     @Test
     fun `checks uiState is Error when transportList request is null`() = runBlocking {
-        whenever(transportListUseCase.request()).thenReturn(nullTransportList)
+        whenever(transportListUseCase.requestWithParameter(frameMap)).thenReturn(nullTransportList)
         mainViewModel.initialize()
         Truth.assertThat(mainViewModel.uiState.value).isEqualTo(ScreenState.Error)
     }
