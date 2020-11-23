@@ -31,7 +31,6 @@ class MainFragment : Fragment(), OnMapReadyCallback {
     @Inject
     lateinit var mainViewModel: MainViewModel
 
-    private var transportList = mutableListOf<Transport>()
     private var hashMapOfColors = hashMapOf<Int, Int>()
     private var googleMap: GoogleMap? = null
 
@@ -147,16 +146,6 @@ class MainFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun addMarkers(newTransportList: MutableList<Transport>){
-        if (transportList.isNotEmpty()) {
-            /*val transportListIdList = transportList.map { it.id }
-            newTransportList.toMutableList().removeAll {
-                it.id in transportListIdList
-            }*/
-            for (transport in transportList) {
-                val transportToDelete = newTransportList.find { it.id == transport.id }
-                newTransportList.remove(transportToDelete)
-            }
-        }
         val newHashMapOfColors = CompanyZoneColor(newTransportList.getCompanyZoneIdList()).getHashMapOfColors()
         for (key in newHashMapOfColors.keys){
             if (!hashMapOfColors.containsKey(key))
@@ -170,7 +159,6 @@ class MainFragment : Fragment(), OnMapReadyCallback {
             marker?.tag = transport
             marker?.setIcon(IconCreator(hashMapOfColors, transport.companyZoneId, requireContext()).getIcon())
         }
-
     }
 
     private fun updateUI(screenState: ScreenState) {
