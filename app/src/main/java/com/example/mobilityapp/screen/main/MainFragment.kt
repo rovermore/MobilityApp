@@ -94,6 +94,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
             val isGoogleServicesAvailable = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(requireContext())
             if (isGoogleServicesAvailable == ConnectionResult.SUCCESS) {
                 it.apply {
+                    setMinZoomPreference(15.5f)
                     moveCamera(
                         CameraUpdateFactory.newLatLngZoom(
                             LatLng(38.725307, -9.151907),
@@ -110,6 +111,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
                         isTiltGesturesEnabled = true
                         isScrollGesturesEnabledDuringRotateOrZoom = true
                     }
+
                 }
                 big_map.visible()
             }
