@@ -34,11 +34,12 @@ class MainViewModel
 
     private val lowerLeftLatLng = LatLng(38.711046,-9.160096)
     private val upperRightLatLng = LatLng(38.739429,-9.137115)
-    private val defaultFrameMap = FrameMap(lowerLeftLatLng, upperRightLatLng)
+    val frameMap = FrameMap(lowerLeftLatLng, upperRightLatLng)
+    var borderRegion = FrameMap(lowerLeftLatLng, upperRightLatLng)
 
 
     fun initialize() {
-        loadData(defaultFrameMap)
+        loadData(frameMap)
     }
 
     fun loadData(frameMap: FrameMap) {

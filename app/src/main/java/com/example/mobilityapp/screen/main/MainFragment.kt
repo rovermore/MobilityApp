@@ -1,6 +1,7 @@
 package com.example.mobilityapp.screen.main
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,6 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import com.example.mobilityapp.MobilityApp
 import com.example.mobilityapp.R
+import com.example.mobilityapp.model.FrameMap
 import com.example.mobilityapp.model.Transport
 import com.example.mobilityapp.model.getCompanyZoneIdList
 import com.example.mobilityapp.utils.*
@@ -29,7 +31,8 @@ class MainFragment : Fragment(), OnMapReadyCallback {
     @Inject
     lateinit var mainViewModel: MainViewModel
 
-    private var transportList = listOf<Transport>()
+    private var transportList = mutableListOf<Transport>()
+    private var hashMapOfColors = hashMapOf<Int, Int>()
     private var googleMap: GoogleMap? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -72,8 +75,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
     private fun observeData() {
         mainViewModel.uiModel.observe(this, Observer {
-            transportList = it
-            addMarkers()
+            addMarkers(it.toMutableList())
         })
     }
 
@@ -100,7 +102,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
                         )
                     )
                     setOnCameraMoveListener {
-
+                        loadMoreMarkers()
                     }
                     uiSettings.apply {
                         isZoomControlsEnabled = true
@@ -115,9 +117,52 @@ class MainFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
-    private fun addMarkers(){
-        val hashMapOfColors = CompanyZoneColor(transportList.getCompanyZoneIdList()).getHashMapOfColors()
-        for (transport in transportList) {
+    private fun loadMoreMarkers() {
+        val cameraPosition = googleMap?.cameraPosition?.target
+        if (cameraPosition?.latitude!! < mainViewModel.borderRegion.lowerLeftLatLng.latitude
+            || cameraPosition.latitude > mainViewModel.borderRegion.upperRightLatLng.latitude
+            || cameraPosition.longitude < mainViewModel.borderRegion.lowerLeftLatLng.longitude
+            || cameraPosition.longitude > mainViewModel.borderRegion.upperRightLatLng.longitude
+        ){
+            Log.v("FRAME: ", "OUT")
+            googleMap?.apply {
+                mainViewModel.loadData(
+                    FrameMap(
+                        projection.visibleRegion.latLngBounds.southwest,
+                        projection.visibleRegion.latLngBounds.northeast
+                    )
+                )
+                if (projection.visibleRegion.latLngBounds.southwest.longitude < mainViewModel.borderRegion.lowerLeftLatLng.longitude)
+                    mainViewModel.borderRegion.lowerLeftLatLng = LatLng(mainViewModel.borderRegion.lowerLeftLatLng.latitude, projection.visibleRegion.latLngBounds.southwest.longitude)
+                if(projection.visibleRegion.latLngBounds.southwest.latitude < mainViewModel.borderRegion.lowerLeftLatLng.latitude)
+                    mainViewModel.borderRegion.lowerLeftLatLng = LatLng(projection.visibleRegion.latLngBounds.southwest.latitude, mainViewModel.borderRegion.lowerLeftLatLng.latitude)
+                if(projection.visibleRegion.latLngBounds.northeast.longitude > mainViewModel.borderRegion.upperRightLatLng.longitude)
+                    mainViewModel.borderRegion.upperRightLatLng = LatLng(mainViewModel.borderRegion.upperRightLatLng.latitude, projection.visibleRegion.latLngBounds.northeast.longitude)
+                if(projection.visibleRegion.latLngBounds.northeast.latitude > mainViewModel.borderRegion.upperRightLatLng.latitude)
+                    mainViewModel.borderRegion.upperRightLatLng = LatLng(projection.visibleRegion.latLngBounds.northeast.latitude, mainViewModel.borderRegion.upperRightLatLng.longitude)
+            }
+        } else {
+            Log.v("FRAME: ", "IN")
+        }
+    }
+
+    private fun addMarkers(newTransportList: MutableList<Transport>){
+        if (transportList.isNotEmpty()) {
+            /*val transportListIdList = transportList.map { it.id }
+            newTransportList.toMutableList().removeAll {
+                it.id in transportListIdList
+            }*/
+            for (transport in transportList) {
+                val transportToDelete = newTransportList.find { it.id == transport.id }
+                newTransportList.remove(transportToDelete)
+            }
+        }
+        val newHashMapOfColors = CompanyZoneColor(newTransportList.getCompanyZoneIdList()).getHashMapOfColors()
+        for (key in newHashMapOfColors.keys){
+            if (!hashMapOfColors.containsKey(key))
+                newHashMapOfColors[key]?.let { hashMapOfColors.put(key, it) }
+        }
+        for (transport in newTransportList) {
             val marker = googleMap?.addMarker(
                 MarkerOptions().position(LatLng(transport.y, transport.x))
                     .title(transport.name)
