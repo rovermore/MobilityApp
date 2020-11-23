@@ -1,9 +1,6 @@
 package com.example.mobilityapp
 
 import com.example.mobilityapp.model.getCompanyZoneIdList
-import junit.framework.TestCase
-import org.hamcrest.CoreMatchers
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 

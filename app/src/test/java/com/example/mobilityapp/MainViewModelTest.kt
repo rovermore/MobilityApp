@@ -1,7 +1,6 @@
 package com.example.mobilityapp
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import com.example.mobilityapp.model.FrameMap
 import com.example.mobilityapp.screen.main.MainViewModel
 import com.example.mobilityapp.usecase.TransportListUseCase
 import com.example.mobilityapp.utils.NetworkConnection
