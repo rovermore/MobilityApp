@@ -9,17 +9,14 @@ import androidx.lifecycle.Observer
 import com.example.mobilityapp.MobilityApp
 import com.example.mobilityapp.R
 import com.example.mobilityapp.model.Transport
-import com.example.mobilityapp.utils.ScreenState
-import com.example.mobilityapp.utils.gone
-import com.example.mobilityapp.utils.visible
+import com.example.mobilityapp.model.getCompanyZoneIdList
+import com.example.mobilityapp.utils.*
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
-import com.google.android.gms.common.GooglePlayServicesUtil
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.android.synthetic.main.error_view.*
@@ -33,6 +30,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
     lateinit var mainViewModel: MainViewModel
 
     private var transportList = listOf<Transport>()
+    private var googleMap: GoogleMap? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,6 +49,7 @@ class MainFragment : Fragment(), OnMapReadyCallback {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupUi()
         setupReloadButton()
     }
 
@@ -74,8 +73,12 @@ class MainFragment : Fragment(), OnMapReadyCallback {
     private fun observeData() {
         mainViewModel.uiModel.observe(this, Observer {
             transportList = it
-            setupMap()
+            addMarkers()
         })
+    }
+
+    private fun setupUi() {
+        setupMap()
     }
 
     private fun setupMap() {
@@ -85,27 +88,14 @@ class MainFragment : Fragment(), OnMapReadyCallback {
     }
 
     override fun onMapReady(googleMap: GoogleMap?) {
+        this.googleMap = googleMap
         googleMap?.let {
             val isGoogleServicesAvailable = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(requireContext())
-            if (transportList.isNotEmpty() && isGoogleServicesAvailable == ConnectionResult.SUCCESS) {
-                for (transport in transportList) {
-                    val marker = it.addMarker(
-                        MarkerOptions().position(LatLng(transport.y, transport.x))
-                            .title(transport.name)
-                    )
-                    marker.tag = transport
-                    when (transport.companyZoneId) {
-                        402 -> marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
-                        378 -> marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
-                        382 -> marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE))
-                        473 -> marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW))
-                        412 -> marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
-                    }
-                }
+            if (isGoogleServicesAvailable == ConnectionResult.SUCCESS) {
                 it.apply {
                     moveCamera(
                         CameraUpdateFactory.newLatLngZoom(
-                            LatLng(transportList[0].y, transportList[0].x),
+                            LatLng(38.725307, -9.151907),
                             16.0f
                         )
                     )
@@ -125,7 +115,18 @@ class MainFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    private fun addMarkers(){
+        val hashMapOfColors = CompanyZoneColor(transportList.getCompanyZoneIdList()).getHashMapOfColors()
+        for (transport in transportList) {
+            val marker = googleMap?.addMarker(
+                MarkerOptions().position(LatLng(transport.y, transport.x))
+                    .title(transport.name)
+            )
+            marker?.tag = transport
+            marker?.setIcon(IconCreator(hashMapOfColors, transport.companyZoneId, requireContext()).getIcon())
+        }
 
+    }
 
     private fun updateUI(screenState: ScreenState) {
         when (screenState) {

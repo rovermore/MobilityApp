@@ -56,3 +56,11 @@ data class Transport(
         null
     )
 }
+
+fun List<Transport>.getCompanyZoneIdList(): List<Int> {
+    val companyZoneListId = mutableListOf<Int>()
+    for (transport in this) {
+        companyZoneListId.add(transport.companyZoneId)
+    }
+    return companyZoneListId.distinct()
+}
