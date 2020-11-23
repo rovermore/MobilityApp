@@ -1,12 +1,17 @@
 package com.example.mobilityapp.client
 
 import com.example.mobilityapp.model.Transport
+import com.google.android.gms.maps.model.LatLng
 import retrofit2.http.GET
+import retrofit2.http.Query
 
 interface RetrofitApiClient {
 
-    @GET("resources?lowerLeftLatLon=38.711046,-9.160096&upperRightLatLon=38.739429,-9.137115")
-    suspend fun getResponse()
+    @GET("resources")
+    suspend fun getResponse(
+        @Query("lowerLeftLatLon") lowerLeftLatLon: String,
+        @Query("upperRightLatLon") upperRightLatLon: String
+    )
             : List<Transport>?
 
 }

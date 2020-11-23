@@ -4,10 +4,12 @@ package com.example.mobilityapp.screen.main
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.mobilityapp.model.FrameMap
 import com.example.mobilityapp.model.Transport
 import com.example.mobilityapp.usecase.TransportListUseCase
 import com.example.mobilityapp.utils.NetworkConnection
 import com.example.mobilityapp.utils.ScreenState
+import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -30,30 +32,35 @@ class MainViewModel
     private val _uiState = MutableLiveData<ScreenState>()
     val uiState: LiveData<ScreenState> = _uiState
 
+    private val lowerLeftLatLng = LatLng(38.711046,-9.160096)
+    private val upperRightLatLng = LatLng(38.739429,-9.137115)
+    private val defaultFrameMap = FrameMap(lowerLeftLatLng, upperRightLatLng)
+
+
     fun initialize() {
-        loadData()
+        loadData(defaultFrameMap)
     }
 
-    fun loadData() {
+    fun loadData(frameMap: FrameMap) {
         _uiState.value = ScreenState.Loading
-        checkInternetConnection()
+        checkInternetConnection(frameMap)
     }
 
-    private fun checkInternetConnection() {
+    private fun checkInternetConnection(frameMap: FrameMap) {
         if (networkConnection.isNetworkConnected())
-            setupObservers()
+            setupObservers(frameMap)
         else
             _uiState.setValue(ScreenState.Error)
     }
 
-    private fun setupObservers() {
-        observeResponse()
+    private fun setupObservers(frameMap: FrameMap) {
+        observeResponse(frameMap)
 
     }
 
-    private fun observeResponse() {
+    private fun observeResponse(frameMap: FrameMap) {
         viewModelScope.launch {
-            val response = transportListUseCase.request()
+            val response = transportListUseCase.requestWithParameter(frameMap)
             response?.let {
                 createAndPostUiModel(it)
             } ?: displayError()
