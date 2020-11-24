@@ -67,13 +67,13 @@ class MainFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun observeState() {
-        mainViewModel.uiState.observe(this, Observer {
+        mainViewModel.uiState.observe(viewLifecycleOwner, Observer {
             updateUI(it)
         })
     }
 
     private fun observeData() {
-        mainViewModel.uiModel.observe(this, Observer {
+        mainViewModel.uiModel.observe(viewLifecycleOwner, Observer {
             addMarkers(it.toMutableList())
         })
     }
